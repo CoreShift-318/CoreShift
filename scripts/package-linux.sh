@@ -70,17 +70,18 @@ if [ -z "$RPMBUILD_BIN" ]; then
   echo "   rpmbuild not found; skipping .rpm (set RPMBUILD_HOME to an extracted rpm-build prefix)"
 else
   TOP="$(mktemp -d)"
+  RPM_LOG="$(mktemp)"
   mkdir -p "$TOP/BUILD" "$TOP/RPMS" "$TOP/SOURCES" "$TOP/SPECS" "$TOP/SRPMS"
   cp -r "$PUB" "$TOP/SOURCES/payload"
   cp "$PKG/coreshift.launcher" "$PKG/coreshift.desktop" "$TOP/SOURCES/"
   cp "$PKG/coreshift.spec" "$TOP/SPECS/"
-  if "$RPMBUILD_BIN" -bb "$TOP/SPECS/coreshift.spec" --define "_topdir $TOP" "${RPM_DEFINES[@]}" >/tmp/opencode/rpmbuild.log 2>&1; then
+  if "$RPMBUILD_BIN" -bb "$TOP/SPECS/coreshift.spec" --define "_topdir $TOP" "${RPM_DEFINES[@]}" >"$RPM_LOG" 2>&1; then
     find "$TOP/RPMS" -name '*.rpm' -exec cp {} "$OUT/CoreShift-$VERSION-linux-x86_64.rpm" \;
   else
-    echo "   rpmbuild failed; see /tmp/opencode/rpmbuild.log"
-    tail -20 /tmp/opencode/rpmbuild.log
+    echo "   rpmbuild failed; log follows:"
+    tail -20 "$RPM_LOG"
   fi
-  rm -rf "$TOP"
+  rm -rf "$TOP" "$RPM_LOG"
 fi
 
 echo "==> done"

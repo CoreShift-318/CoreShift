@@ -32,7 +32,13 @@ jobs:
       - name: Publish (linux-x64, self-contained)
         run: dotnet publish src/CoreShift.Game/CoreShift.Game.csproj -c Release -r linux-x64 --self-contained true -o dist/linux-x64
       - name: Package (.tar.gz, .deb, .rpm)
-        run: VERSION="${GITHUB_REF_NAME#v}" ./scripts/package-linux.sh
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.1.0"
+          fi
+          VERSION="$VERSION" ./scripts/package-linux.sh
       - uses: actions/upload-artifact@v4
         with:
           name: linux
@@ -56,14 +62,12 @@ jobs:
         run: |
           dotnet tool install --global wix --version 5.0.2
           $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
-          $version = $env:GITHUB_REF_NAME -replace '^v', ''
-          if (-not $version) { $version = '0.1.0' }
+          $version = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF_NAME -replace '^v', '' } else { '0.1.0' }
           wix build packaging/coreshift.wxs -o "dist/CoreShift-$version-win-x64.msi"
       - name: Build portable ZIP
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME -replace '^v', ''
-          if (-not $version) { $version = '0.1.0' }
+          $version = if ($env:GITHUB_REF -like 'refs/tags/*') { $env:GITHUB_REF_NAME -replace '^v', '' } else { '0.1.0' }
           Compress-Archive -Path dist/win-x64/* -DestinationPath "dist/CoreShift-$version-win-x64.zip"
       - uses: actions/upload-artifact@v4
         with:
