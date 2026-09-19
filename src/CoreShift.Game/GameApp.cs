@@ -420,7 +420,7 @@ public sealed class GameApp
     private string NextScreenshotPath()
     {
         _screenshotIndex++;
-        return Path.Combine("screenshots", $"coreshift-{_screenshotIndex:00}.png");
+        return Path.Combine(UserPaths.ScreenshotsDirectory, $"coreshift-{_screenshotIndex:00}.png");
     }
 
     public static void SaveScreenshot(string path)

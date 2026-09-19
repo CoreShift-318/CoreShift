@@ -88,6 +88,35 @@ dotnet run --project src/CoreShift.Console -- --bench
 Prints average and p95 tick time and entities/second at 256, 512, 1024, and 2048 concurrent
 enemies. This is the measurable evidence for the proposal's performance goal.
 
+## Platforms, installers, and save location
+
+CI (`.github/workflows/release.yml`) builds, on a version tag, self-contained packages for:
+
+| Platform | Artifacts |
+|---|---|
+| Windows | `.msi` installer and portable `.zip` (win-x64) |
+| Linux | `.tar.gz`, `.deb` (amd64), `.rpm` (x86_64) |
+| macOS | `.dmg` and `.zip` app bundles for **Apple Silicon** (osx-arm64) and **Intel** (osx-x64) |
+
+Artifacts are published to the public builds repository:
+<https://github.com/niicommey01/coreshift-builds/releases>
+
+**Saves and screenshots are written to a per-user data directory** (never next to the executable,
+which is read-only when installed):
+
+- Windows: `%APPDATA%\CoreShift\`
+- macOS: `~/Library/Application Support/CoreShift/`
+- Linux: `$XDG_DATA_HOME/CoreShift/` or `~/.local/share/CoreShift/`
+
+**macOS note:** builds are ad-hoc signed, not notarized. On first launch, right-click the app and
+choose **Open**, or clear the quarantine flag:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/CoreShift.app
+```
+
+Full Gatekeeper-free distribution requires an Apple Developer ID certificate and notarization.
+
 ## Key design points
 
 - **Fixed timestep** 60 Hz simulation (`World.FixedDeltaSeconds`) for frame-rate independence.

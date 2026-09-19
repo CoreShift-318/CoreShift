@@ -9,7 +9,7 @@ public sealed class GameSession
 
     public GameSession()
     {
-        SavePath = Path.Combine(AppContext.BaseDirectory, "saves", "progress.json");
+        SavePath = Path.Combine(UserPaths.SavesDirectory, "progress.json");
         Progression = new ProgressionState(Load());
     }
 

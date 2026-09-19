@@ -77,8 +77,34 @@ jobs:
             dist/*.zip
           if-no-files-found: error
 
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [osx-arm64, osx-x64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish (${{ matrix.rid }}, self-contained)
+        run: dotnet publish src/CoreShift.Game/CoreShift.Game.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o dist/${{ matrix.rid }}
+      - name: Package .app / .dmg / .zip
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then VERSION="${GITHUB_REF_NAME#v}"; else VERSION="0.1.0"; fi
+          chmod +x packaging/make-macos-app.sh
+          packaging/make-macos-app.sh ${{ matrix.rid }} "$VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.rid }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
+
   publish:
-    needs: [linux, windows]
+    needs: [linux, windows, macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
