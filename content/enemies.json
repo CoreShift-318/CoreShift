@@ -1,0 +1,5 @@
+[
+  { "id": "grunt", "name": "Grunt", "maxHealth": 20, "speed": 2.0, "damage": 5, "radius": 0.5, "xpReward": 1, "color": -2068384 },
+  { "id": "brute", "name": "Brute", "maxHealth": 60, "speed": 1.2, "damage": 12, "radius": 0.9, "xpReward": 4, "color": -5226320, "onHitStatus": "Slow", "onHitMagnitude": 0.5, "onHitDuration": 2, "onHitChance": 0.6 },
+  { "id": "wisp", "name": "Wisp", "maxHealth": 8, "speed": 4.0, "damage": 3, "radius": 0.35, "xpReward": 2, "color": -10436353, "onHitStatus": "Shock", "onHitMagnitude": 0.25, "onHitDuration": 3, "onHitChance": 0.5 }
+]

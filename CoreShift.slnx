@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CoreShift.Console/CoreShift.Console.csproj" />
+    <Project Path="src/CoreShift.Core/CoreShift.Core.csproj" />
+    <Project Path="src/CoreShift.Data/CoreShift.Data.csproj" />
+    <Project Path="src/CoreShift.Game/CoreShift.Game.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CoreShift.Core.Tests/CoreShift.Core.Tests.csproj" />
+  </Folder>
+</Solution>

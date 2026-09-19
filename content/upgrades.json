@@ -1,0 +1,15 @@
+[
+  { "id": "vitality", "name": "Vitality", "description": "+20 max health", "rarity": 1, "kind": "MaxHealth", "magnitude": 20, "maxStacks": 5 },
+  { "id": "swiftness", "name": "Swiftness", "description": "+15% move speed", "rarity": 1, "kind": "MoveSpeed", "magnitude": 0.9, "maxStacks": 5 },
+  { "id": "might", "name": "Might", "description": "+25% damage", "rarity": 1, "kind": "Damage", "magnitude": 2.5, "maxStacks": 5 },
+  { "id": "haste", "name": "Haste", "description": "+20% fire rate", "rarity": 2, "kind": "FireRate", "magnitude": 1.6, "maxStacks": 4 },
+  { "id": "multishot", "name": "Multishot", "description": "+1 projectile", "rarity": 3, "kind": "ProjectileCount", "magnitude": 1, "maxStacks": 3 },
+  { "id": "scholar", "name": "Scholar", "description": "+25% experience gain", "rarity": 2, "kind": "XpGain", "magnitude": 0.25, "maxStacks": 3 },
+  { "id": "precision", "name": "Precision", "description": "+8% critical chance", "rarity": 2, "kind": "CritChance", "magnitude": 0.08, "maxStacks": 5 },
+  { "id": "execution", "name": "Execution", "description": "+50% critical damage", "rarity": 3, "kind": "CritDamage", "magnitude": 0.5, "maxStacks": 4 },
+  { "id": "incendiary", "name": "Incendiary Rounds", "description": "Shots set enemies on fire", "rarity": 2, "kind": "BurnRounds", "magnitude": 6, "maxStacks": 3 },
+  { "id": "cryo", "name": "Cryo Rounds", "description": "Shots slow enemies", "rarity": 2, "kind": "SlowRounds", "magnitude": 0.55, "maxStacks": 2 },
+  { "id": "magnet", "name": "Magnet", "description": "+1.5 pickup radius", "rarity": 1, "kind": "PickupRadius", "magnitude": 1.5, "maxStacks": 4 },
+  { "id": "weapon_shotgun", "name": "Scatter Cannon", "description": "Swap to a 5-pellet shotgun", "rarity": 3, "kind": "WeaponShotgun", "magnitude": 0, "maxStacks": 1 },
+  { "id": "weapon_laser", "name": "Piercing Laser", "description": "Swap to a piercing laser", "rarity": 3, "kind": "WeaponLaser", "magnitude": 0, "maxStacks": 1 }
+]

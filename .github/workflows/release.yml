@@ -1,0 +1,104 @@
+name: release
+
+# Builds distributables and publishes them to the public artifacts repository.
+# Triggers on version tags (v0.1.0) or manually.
+#
+# Required repository configuration (on the code repo):
+#   - Variable  ARTIFACTS_REPO   e.g. "niicommey01/coreshift-builds"
+#   - Secret    ARTIFACTS_TOKEN  a PAT with contents:write on the artifacts repo
+#             (or a fine-grained token scoped to that repo)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install rpmbuild
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+      - name: Publish (linux-x64, self-contained)
+        run: dotnet publish src/CoreShift.Game/CoreShift.Game.csproj -c Release -r linux-x64 --self-contained true -o dist/linux-x64
+      - name: Package (.tar.gz, .deb, .rpm)
+        run: VERSION="${GITHUB_REF_NAME#v}" ./scripts/package-linux.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            dist/*.tar.gz
+            dist/*.deb
+            dist/*.rpm
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish (win-x64, self-contained)
+        run: dotnet publish src/CoreShift.Game/CoreShift.Game.csproj -c Release -r win-x64 --self-contained true -o dist/win-x64
+      - name: Build MSI (WiX)
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if (-not $version) { $version = '0.1.0' }
+          wix build packaging/coreshift.wxs -o "dist/CoreShift-$version-win-x64.msi"
+      - name: Build portable ZIP
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if (-not $version) { $version = '0.1.0' }
+          Compress-Archive -Path dist/win-x64/* -DestinationPath "dist/CoreShift-$version-win-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            dist/*.msi
+            dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Publish to the public artifacts repo (gh cli)
+        env:
+          GH_TOKEN: ${{ secrets.ARTIFACTS_TOKEN }}
+          ARTIFACTS_REPO: ${{ vars.ARTIFACTS_REPO }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ARTIFACTS_REPO:-}" ]; then
+            echo "ARTIFACTS_REPO variable is not set" >&2
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          if [ -z "$version" ] || [ "$version" = "$GITHUB_REF_NAME" ]; then version="0.1.0"; fi
+          tag="v$version"
+          files=$(find artifacts -type f)
+          echo "Publishing $tag to $ARTIFACTS_REPO:"
+          echo "$files"
+          if ! gh release view "$tag" --repo "$ARTIFACTS_REPO" >/dev/null 2>&1; then
+            gh release create "$tag" --repo "$ARTIFACTS_REPO" \
+              --title "CoreShift $tag" \
+              --notes "Automated build of CoreShift $tag."
+          fi
+          gh release upload "$tag" --repo "$ARTIFACTS_REPO" --clobber $files

@@ -1,0 +1,29 @@
+# Build output
+bin/
+obj/
+dist/
+
+# Runtime data
+saves/
+screenshots/
+
+# Documentation (intentionally not published with the code)
+docs/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Crash dumps
+core
+core.*
+
+# NuGet
+*.nupkg

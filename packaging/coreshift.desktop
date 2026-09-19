@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CoreShift: Chrono-Survival
+Comment=Roguelike twin-stick survival game
+Exec=coreshift
+Terminal=false
+Categories=Game;ArcadeGame;
+Keywords=game;roguelike;survival;shooter;

@@ -1,0 +1,6 @@
+[
+  { "wave": 1, "enemyId": "grunt", "count": 5, "spawnInterval": 1.2, "healthMultiplier": 1.0, "speedMultiplier": 1.0 },
+  { "wave": 2, "enemyId": "grunt", "count": 7, "spawnInterval": 1.15, "healthMultiplier": 1.15, "speedMultiplier": 1.03 },
+  { "wave": 3, "enemyId": "wisp", "count": 9, "spawnInterval": 1.1, "healthMultiplier": 1.3, "speedMultiplier": 1.06 },
+  { "wave": 4, "enemyId": "brute", "count": 11, "spawnInterval": 1.05, "healthMultiplier": 1.45, "speedMultiplier": 1.09 }
+]
