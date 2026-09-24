@@ -33,7 +33,7 @@ public static class Audio
     };
 
     private static bool _ready;
-    private static Music _music;
+    private static Sound _music;
     private static bool _musicReady;
     private static float _musicVolume = 0.5f;
 
@@ -64,35 +64,41 @@ public static class Audio
         Register(Sfx.UiMove, SynthSweep(620f, 620f, 0.03f, 0.3f));
         Register(Sfx.UiConfirm, SynthSweep(520f, 940f, 0.12f, 0.4f));
 
+        // Music is fully decoded into a Sound (raylib owns a copy) and looped by replaying it.
+        // Do NOT use LoadMusicStreamFromMemory: raylib's drwav streamer keeps a pointer into the
+        // managed buffer and reads it on every UpdateMusicStream, which faults once that buffer is
+        // freed (SIGBUS on macOS).
         try
         {
-            _music = Raylib.LoadMusicStreamFromMemory(".wav", ToWav(SynthMusic()));
+            var wave = Raylib.LoadWaveFromMemory(".wav", ToWav(SynthMusic()));
+            _music = Raylib.LoadSoundFromWave(wave);
+            Raylib.UnloadWave(wave);
             _musicReady = true;
-            Raylib.SetMusicVolume(_music, _musicVolume);
+            Raylib.SetSoundVolume(_music, _musicVolume);
         }
-        catch
+        catch (Exception ex)
         {
             _musicReady = false;
+            CrashLog.Write("LoadMusic", ex);
         }
     }
 
     public static void StartMusic()
     {
         if (!_ready || !_musicReady) return;
-        Raylib.PlayMusicStream(_music);
+        Raylib.PlaySound(_music);
     }
 
     public static void UpdateMusic()
     {
         if (!_ready || !_musicReady) return;
-        Raylib.UpdateMusicStream(_music);
-        if (!Raylib.IsMusicStreamPlaying(_music)) Raylib.PlayMusicStream(_music);
+        if (!Raylib.IsSoundPlaying(_music)) Raylib.PlaySound(_music);
     }
 
     public static void SetMusicVolume(float volume)
     {
         _musicVolume = Math.Clamp(volume, 0f, 1f);
-        if (_ready && _musicReady) Raylib.SetMusicVolume(_music, _musicVolume);
+        if (_ready && _musicReady) Raylib.SetSoundVolume(_music, _musicVolume);
     }
 
     public static void Play(Sfx id)
@@ -127,7 +133,7 @@ public static class Audio
         if (!_ready) return;
         if (_musicReady)
         {
-            Raylib.UnloadMusicStream(_music);
+            Raylib.UnloadSound(_music);
             _musicReady = false;
         }
         foreach (var sound in Sounds.Values) Raylib.UnloadSound(sound);
