@@ -63,39 +63,82 @@ public sealed class GameApp
 
     public void Run()
     {
-        Raylib.InitWindow(ScreenWidth, ScreenHeight, "CoreShift: Chrono-Survival v" + Version);
+        try
+        {
+            Raylib.InitWindow(ScreenWidth, ScreenHeight, "CoreShift: Chrono-Survival v" + Version);
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("InitWindow", ex);
+            return;
+        }
+
+        if (!Raylib.IsWindowReady())
+        {
+            CrashLog.Write("InitWindow", new InvalidOperationException(
+                "Window/OpenGL context could not be created (no display, or a missing/unsupported GPU driver)."));
+            return;
+        }
+
         Raylib.SetExitKey(KeyboardKey.Null);
         Raylib.SetTargetFPS(60);
-        Audio.Initialize();
-        ApplyAudioSettings();
-        Audio.StartMusic();
-        InitializeGraphics();
+
+        try
+        {
+            Audio.Initialize();
+            ApplyAudioSettings();
+            Audio.StartMusic();
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("Audio.Initialize", ex);
+        }
+
+        try
+        {
+            InitializeGraphics();
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("InitializeGraphics", ex);
+            Audio.Shutdown();
+            Raylib.CloseWindow();
+            return;
+        }
+
         ChangeScene(new MainMenuScene());
 
-        while (!Raylib.WindowShouldClose() && !QuitRequested)
+        try
         {
-            float dt = Raylib.GetFrameTime();
-            Time += dt;
-            UpdateShake(dt);
-            Audio.UpdateMusic();
-
-            Current.Update(this, dt);
-
-            if (Raylib.IsKeyPressed(KeyboardKey.F12)) SaveScreenshot(NextScreenshotPath());
-
-            Raylib.BeginDrawing();
-            Raylib.ClearBackground(Palette.Background);
-            Current.Draw(this);
-            if (_fade > 0f)
+            while (!Raylib.WindowShouldClose() && !QuitRequested)
             {
-                _fade = MathF.Max(0f, _fade - dt * 2.5f);
-                Raylib.DrawRectangle(0, 0, ScreenWidth, ScreenHeight, Palette.Alpha(Palette.Background, (byte)(255 * _fade)));
+                float dt = Raylib.GetFrameTime();
+                Time += dt;
+                UpdateShake(dt);
+                Audio.UpdateMusic();
+
+                Current.Update(this, dt);
+
+                if (Raylib.IsKeyPressed(KeyboardKey.F12)) SaveScreenshot(NextScreenshotPath());
+
+                Raylib.BeginDrawing();
+                Raylib.ClearBackground(Palette.Background);
+                Current.Draw(this);
+                if (_fade > 0f)
+                {
+                    _fade = MathF.Max(0f, _fade - dt * 2.5f);
+                    Raylib.DrawRectangle(0, 0, ScreenWidth, ScreenHeight, Palette.Alpha(Palette.Background, (byte)(255 * _fade)));
+                }
+                if (Session.Progression.Data.ShowFps)
+                {
+                    Raylib.DrawText($"FPS {Raylib.GetFPS()}", ScreenWidth - 96, ScreenHeight - 24, 16, Palette.TextDim);
+                }
+                Raylib.EndDrawing();
             }
-            if (Session.Progression.Data.ShowFps)
-            {
-                Raylib.DrawText($"FPS {Raylib.GetFPS()}", ScreenWidth - 96, ScreenHeight - 24, 16, Palette.TextDim);
-            }
-            Raylib.EndDrawing();
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("main loop", ex);
         }
 
         Sprites.Dispose();
@@ -112,8 +155,24 @@ public sealed class GameApp
 
     public void RunScreenshot(string outputPath, string sceneName, int ticks)
     {
-        Raylib.SetConfigFlags(ConfigFlags.HiddenWindow);
-        Raylib.InitWindow(ScreenWidth, ScreenHeight, "CoreShift");
+        try
+        {
+            Raylib.SetConfigFlags(ConfigFlags.HiddenWindow);
+            Raylib.InitWindow(ScreenWidth, ScreenHeight, "CoreShift");
+        }
+        catch (Exception ex)
+        {
+            CrashLog.Write("InitWindow(screenshot)", ex);
+            return;
+        }
+
+        if (!Raylib.IsWindowReady())
+        {
+            CrashLog.Write("InitWindow(screenshot)", new InvalidOperationException(
+                "Window/OpenGL context could not be created (no display, or a missing/unsupported GPU driver)."));
+            return;
+        }
+
         Raylib.SetExitKey(KeyboardKey.Null);
         Raylib.SetTargetFPS(60);
         InitializeGraphics();

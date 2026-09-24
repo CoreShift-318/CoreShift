@@ -134,6 +134,12 @@ Full Gatekeeper-free distribution requires an Apple Developer ID certificate and
 - **Crits, knockback, and damage/heal events** driving floating numbers and hit-stop.
 - **Magnet pickups** — health orbs and credits dropped by enemies and pulled in by `PickupRadius`.
 - **Object pooling** for enemies, projectiles, and pickups, with capacity caps and drop counting.
+- **Zero-allocation hot path** — allocation-free struct-enumerable ECS iteration; a test asserts
+  ~0 bytes allocated per simulation tick.
+- **Runtime tuning** — invariant globalization, workstation non-concurrent GC, and diagnostics /
+  EventSource disabled to cut memory, threads, and startup cost.
+- **Crash diagnostics** — startup failures and unhandled exceptions are written to a log in the
+  per-user data directory (`logs/crash-*.log`) instead of dying silently.
 - **Spatial hash grid** for broad-phase collision, reducing O(n^2) checks to roughly O(n).
 - **Data-driven content** in `content/*.json` (enemies, upgrades, waves).
 - **Both JSON and XML saves** behind `ISaveStore`, with schema versioning.

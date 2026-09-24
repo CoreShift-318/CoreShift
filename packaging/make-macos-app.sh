@@ -42,9 +42,14 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-# Ad-hoc signature. Real distribution without Gatekeeper warnings needs an Apple
-# Developer ID certificate and notarization; ad-hoc still helps in many cases.
-codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || echo "warn: ad-hoc codesign failed"
+# Sign nested Mach-O binaries first, then the bundle. Signing the dylib is required on
+# Apple Silicon (an unsigned native library is killed by the OS). --deep is deprecated and
+# does not reliably sign nested libraries, so we sign each one explicitly.
+while IFS= read -r -d '' lib; do
+  codesign --force --sign - "$lib" >/dev/null 2>&1 || echo "warn: codesign failed for $lib"
+done < <(find "$APP/Contents/MacOS" -name '*.dylib' -print0)
+codesign --force --sign - "$APP/Contents/MacOS/CoreShift" >/dev/null 2>&1 || echo "warn: codesign executable failed"
+codesign --force --sign - "$APP" >/dev/null 2>&1 || echo "warn: codesign bundle failed"
 
 hdiutil create -volname "CoreShift" -srcfolder "$APP" -ov -format UDZO \
   "$ROOT/dist/CoreShift-$VERSION-macos-$ARCH.dmg"

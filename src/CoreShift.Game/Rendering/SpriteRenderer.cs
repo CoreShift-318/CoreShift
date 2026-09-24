@@ -29,7 +29,14 @@ public sealed class SpriteRenderer : IDisposable
         {
             string path = Path.Combine(directory, name + ".png");
             if (!File.Exists(path)) continue;
-            _textures[name] = Raylib.LoadTexture(path);
+            try
+            {
+                _textures[name] = Raylib.LoadTexture(path);
+            }
+            catch (Exception ex)
+            {
+                CrashLog.Write("LoadTexture:" + name, ex);
+            }
         }
     }
 
