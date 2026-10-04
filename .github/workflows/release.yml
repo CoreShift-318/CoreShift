@@ -1,12 +1,8 @@
 name: release
 
-# Builds distributables and publishes them to the public artifacts repository.
+# Builds distributables and publishes them as a GitHub Release on this repo.
 # Triggers on version tags (v0.1.0) or manually.
-#
-# Required repository configuration (on the code repo):
-#   - Variable  ARTIFACTS_REPO   e.g. "niicommey01/coreshift-builds"
-#   - Secret    ARTIFACTS_TOKEN  a PAT with contents:write on the artifacts repo
-#             (or a fine-grained token scoped to that repo)
+# No external artifacts repo, no extra secrets: uses the built-in GITHUB_TOKEN.
 
 on:
   push:
@@ -15,7 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   linux:
@@ -110,25 +106,20 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
-      - name: Publish to the public artifacts repo (gh cli)
+      - name: Publish GitHub Release on this repo (gh cli)
         env:
-          GH_TOKEN: ${{ secrets.ARTIFACTS_TOKEN }}
-          ARTIFACTS_REPO: ${{ vars.ARTIFACTS_REPO }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "${ARTIFACTS_REPO:-}" ]; then
-            echo "ARTIFACTS_REPO variable is not set" >&2
-            exit 1
-          fi
-          version="${GITHUB_REF_NAME#v}"
-          if [ -z "$version" ] || [ "$version" = "$GITHUB_REF_NAME" ]; then version="0.1.0"; fi
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then version="${GITHUB_REF_NAME#v}"; else version="0.1.0"; fi
           tag="v$version"
           files=$(find artifacts -type f)
-          echo "Publishing $tag to $ARTIFACTS_REPO:"
+          echo "Publishing $tag on this repo:"
           echo "$files"
-          if ! gh release view "$tag" --repo "$ARTIFACTS_REPO" >/dev/null 2>&1; then
-            gh release create "$tag" --repo "$ARTIFACTS_REPO" \
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" \
               --title "CoreShift $tag" \
               --notes "Automated build of CoreShift $tag."
           fi
-          gh release upload "$tag" --repo "$ARTIFACTS_REPO" --clobber $files
+          # shellcheck disable=SC2086
+          gh release upload "$tag" --clobber $files
